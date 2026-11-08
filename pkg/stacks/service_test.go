@@ -165,3 +165,54 @@ func TestStacksService_StartStop(t *testing.T) {
 		t.Error("expected stop endpoint to be called")
 	}
 }
+
+func TestStacksService_Restart(t *testing.T) {
+	var stopCalled, startCalled bool
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/stacks/7":
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(stacks.Stack{
+				ID:         7,
+				Name:       "app",
+				EndpointID: 2,
+				Status:     stacks.StackStatusActive,
+			})
+		case "/api/stacks/7/stop":
+			stopCalled = true
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(stacks.Stack{ID: 7, Name: "app", Status: stacks.StackStatusInactive})
+		case "/api/stacks/7/start":
+			startCalled = true
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(stacks.Stack{ID: 7, Name: "app", Status: stacks.StackStatusActive})
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	c, err := client.NewClient(
+		client.WithBaseURL(server.URL),
+		client.WithAPIKey("test-key"),
+	)
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+
+	st, err := c.Stacks().Restart(context.Background(), 7, 2)
+	if err != nil {
+		t.Fatalf("Restart failed: %v", err)
+	}
+
+	if !stopCalled {
+		t.Error("expected stop to be called during restart")
+	}
+	if !startCalled {
+		t.Error("expected start to be called during restart")
+	}
+	if st.Status != stacks.StackStatusActive {
+		t.Errorf("expected stack status active, got %v", st.Status)
+	}
+}

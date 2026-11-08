@@ -10,6 +10,7 @@ A Go-based command line interface and SDK client for managing Portainer instance
   - `file` / `cat`: View or export a stack's docker-compose content.
   - `start`: Start a stopped stack.
   - `stop`: Stop an active stack.
+  - `restart`: Restart a stack (shorthand that executes stop & start sequentially).
   - `deploy`: Deploy a new standalone compose or swarm stack from file or stdin.
   - `deploy-git`: Deploy a stack from a remote Git repository (GitOps).
   - `update`: Update stack docker-compose file content or environment variables.
@@ -116,10 +117,11 @@ portainer-cli stack file 7
 portainer-cli stack file 7 -w docker-compose.yml
 ```
 
-### 4. Start & Stop stacks
+### 4. Start, Stop & Restart stacks
 ```bash
 portainer-cli stack stop 7
 portainer-cli stack start 7
+portainer-cli stack restart 7
 ```
 
 ### 5. Deploy a stack

@@ -17,6 +17,7 @@ func newStackCmd() *cobra.Command {
 	cmd.AddCommand(newStackFileCmd())
 	cmd.AddCommand(newStackStartCmd())
 	cmd.AddCommand(newStackStopCmd())
+	cmd.AddCommand(newStackRestartCmd())
 	cmd.AddCommand(newStackDeployCmd())
 	cmd.AddCommand(newStackDeployGitCmd())
 	cmd.AddCommand(newStackUpdateCmd())

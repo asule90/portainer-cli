@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 // HTTPRequester abstracts the underlying HTTP transport for the stacks service.
@@ -24,6 +25,7 @@ type Service interface {
 	GetFile(ctx context.Context, id int) (string, error)
 	Start(ctx context.Context, id int, endpointID int) (*Stack, error)
 	Stop(ctx context.Context, id int, endpointID int) (*Stack, error)
+	Restart(ctx context.Context, id int, endpointID int) (*Stack, error)
 	Delete(ctx context.Context, id int, endpointID int, external bool) error
 	CreateComposeFromString(ctx context.Context, endpointID int, payload *CreateComposeStringPayload) (*Stack, error)
 	CreateComposeFromFile(ctx context.Context, endpointID int, name string, filePath string, env []Pair) (*Stack, error)
@@ -113,6 +115,37 @@ func (s *serviceImpl) Stop(ctx context.Context, id int, endpointID int) (*Stack,
 		return nil, err
 	}
 	return &stack, nil
+}
+
+func (s *serviceImpl) Restart(ctx context.Context, id int, endpointID int) (*Stack, error) {
+	current, err := s.Inspect(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed inspecting stack before restart: %w", err)
+	}
+
+	if endpointID <= 0 {
+		endpointID = current.EndpointID
+	}
+
+	// If currently active, stop the stack first
+	if current.Status == StackStatusActive {
+		if _, err := s.Stop(ctx, id, endpointID); err != nil {
+			return nil, fmt.Errorf("failed stopping stack during restart: %w", err)
+		}
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(1 * time.Second):
+		}
+	}
+
+	// Start the stack
+	started, err := s.Start(ctx, id, endpointID)
+	if err != nil {
+		return nil, fmt.Errorf("failed starting stack during restart: %w", err)
+	}
+
+	return started, nil
 }
 
 func (s *serviceImpl) Delete(ctx context.Context, id int, endpointID int, external bool) error {
