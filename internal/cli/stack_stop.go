@@ -29,13 +29,13 @@ func newStackStopCmd() *cobra.Command {
 				return err
 			}
 
-			ep := endpointID
-			if ep == 0 {
-				ep = cfg.EndpointID
-			}
-
 			ctx, cancel := context.WithTimeout(cmd.Context(), 60*time.Second)
 			defer cancel()
+
+			ep, err := resolveEndpointID(ctx, c, id, endpointID)
+			if err != nil {
+				return err
+			}
 
 			stack, err := c.Stacks().Stop(ctx, id, ep)
 			if err != nil {

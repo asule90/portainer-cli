@@ -38,13 +38,13 @@ func newStackUpdateCmd() *cobra.Command {
 				return err
 			}
 
-			ep := endpointID
-			if ep == 0 {
-				ep = cfg.EndpointID
-			}
-
 			ctx, cancel := context.WithTimeout(cmd.Context(), 180*time.Second)
 			defer cancel()
+
+			ep, err := resolveEndpointID(ctx, c, id, endpointID)
+			if err != nil {
+				return err
+			}
 
 			payload := &stacks.UpdateStackPayload{
 				Prune:                  prune,

@@ -37,6 +37,10 @@ func newStackInspectCmd() *cobra.Command {
 				return fmt.Errorf("failed to inspect stack %d: %w", id, err)
 			}
 
+			if endpointMap, err := c.Endpoints().GetMap(ctx); err == nil {
+				stack.EndpointName = endpointMap[stack.EndpointID]
+			}
+
 			return PrintFormatted(os.Stdout, cfg.Output, stack, func() error {
 				w := tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
 				fmt.Fprintf(w, "ID:\t%d\n", stack.ID)
@@ -44,6 +48,9 @@ func newStackInspectCmd() *cobra.Command {
 				fmt.Fprintf(w, "Type:\t%s\n", stack.Type.String())
 				fmt.Fprintf(w, "Status:\t%s\n", stack.Status.String())
 				fmt.Fprintf(w, "Endpoint ID:\t%d\n", stack.EndpointID)
+				if stack.EndpointName != "" {
+					fmt.Fprintf(w, "Environment:\t%s\n", stack.EndpointName)
+				}
 				if stack.SwarmID != "" {
 					fmt.Fprintf(w, "Swarm ID:\t%s\n", stack.SwarmID)
 				}

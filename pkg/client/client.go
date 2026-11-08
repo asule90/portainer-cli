@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/portainer/portainer-cli/pkg/endpoints"
 	"github.com/portainer/portainer-cli/pkg/stacks"
 )
 
@@ -43,7 +44,8 @@ type Client struct {
 	jwtToken    string
 	insecureTLS bool
 
-	stacksService stacks.Service
+	stacksService    stacks.Service
+	endpointsService endpoints.Service
 }
 
 // NewClient creates a new Portainer API Client.
@@ -72,6 +74,7 @@ func NewClient(opts ...Option) (*Client, error) {
 	}
 
 	c.stacksService = stacks.NewService(c)
+	c.endpointsService = endpoints.NewService(c)
 	return c, nil
 }
 
@@ -94,6 +97,11 @@ func (c *Client) setBaseURL(rawURL string) error {
 // Stacks returns the stacks service.
 func (c *Client) Stacks() stacks.Service {
 	return c.stacksService
+}
+
+// Endpoints returns the endpoints service.
+func (c *Client) Endpoints() endpoints.Service {
+	return c.endpointsService
 }
 
 // buildURL creates the full URL for a given relative path and optional query parameters.

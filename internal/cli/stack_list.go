@@ -46,6 +46,14 @@ func newStackListCmd() *cobra.Command {
 				return fmt.Errorf("failed to list stacks: %w", err)
 			}
 
+			// Resolve environment names
+			endpointMap, _ := c.Endpoints().GetMap(ctx)
+			for i := range stackList {
+				if name, ok := endpointMap[stackList[i].EndpointID]; ok {
+					stackList[i].EndpointName = name
+				}
+			}
+
 			return PrintFormatted(os.Stdout, cfg.Output, stackList, func() error {
 				if len(stackList) == 0 {
 					fmt.Println("No stacks found.")
@@ -53,17 +61,22 @@ func newStackListCmd() *cobra.Command {
 				}
 
 				w := tabwriter.NewWriter(os.Stdout, 0, 4, 3, ' ', 0)
-				fmt.Fprintln(w, "ID\tNAME\tTYPE\tENDPOINT\tSTATUS\tCREATED BY\tUPDATED AT")
+				fmt.Fprintln(w, "ID\tNAME\tTYPE\tENDPOINT\tENVIRONMENT\tSTATUS\tCREATED BY\tUPDATED AT")
 				for _, s := range stackList {
 					updated := "-"
 					if s.UpdateDate > 0 {
 						updated = s.UpdatedAt().Format("2006-01-02 15:04")
 					}
-					fmt.Fprintf(w, "%d\t%s\t%s\t%d\t%s\t%s\t%s\n",
+					envName := s.EndpointName
+					if envName == "" {
+						envName = "-"
+					}
+					fmt.Fprintf(w, "%d\t%s\t%s\t%d\t%s\t%s\t%s\t%s\n",
 						s.ID,
 						s.Name,
 						s.Type.String(),
 						s.EndpointID,
+						envName,
 						s.Status.String(),
 						s.CreatedBy,
 						updated,

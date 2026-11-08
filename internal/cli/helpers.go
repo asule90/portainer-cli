@@ -2,10 +2,12 @@ package cli
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"strings"
 
+	"github.com/portainer/portainer-cli/pkg/client"
 	"github.com/portainer/portainer-cli/pkg/stacks"
 )
 
@@ -63,4 +65,23 @@ func parseEnvPairs(envFlags []string, envFile string) ([]stacks.Pair, error) {
 		})
 	}
 	return res, nil
+}
+
+// resolveEndpointID returns explicitEndpointID or cfg.EndpointID if set (>0),
+// otherwise automatically inspects the stack to determine its environment (EndpointID).
+func resolveEndpointID(ctx context.Context, c *client.Client, stackID int, explicitEndpointID int) (int, error) {
+	if explicitEndpointID > 0 {
+		return explicitEndpointID, nil
+	}
+	if cfg.EndpointID > 0 {
+		return cfg.EndpointID, nil
+	}
+	st, err := c.Stacks().Inspect(ctx, stackID)
+	if err != nil {
+		return 0, fmt.Errorf("failed to auto-resolve environment for stack %d (specify manually with -e): %w", stackID, err)
+	}
+	if st.EndpointID <= 0 {
+		return 0, fmt.Errorf("could not determine environment ID for stack %d (specify manually with -e)", stackID)
+	}
+	return st.EndpointID, nil
 }

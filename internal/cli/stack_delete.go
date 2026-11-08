@@ -32,22 +32,13 @@ func newStackDeleteCmd() *cobra.Command {
 				return err
 			}
 
-			ep := endpointID
-			if ep == 0 {
-				ep = cfg.EndpointID
-			}
-
-			// If endpoint not specified, try inspecting the stack to get its endpoint ID
-			if ep == 0 {
-				ctxLookup, cancelLookup := context.WithTimeout(cmd.Context(), 10*time.Second)
-				if st, err := c.Stacks().Inspect(ctxLookup, id); err == nil && st != nil {
-					ep = st.EndpointID
-				}
-				cancelLookup()
-			}
-
 			ctx, cancel := context.WithTimeout(cmd.Context(), 60*time.Second)
 			defer cancel()
+
+			ep, err := resolveEndpointID(ctx, c, id, endpointID)
+			if err != nil {
+				return err
+			}
 
 			if err := c.Stacks().Delete(ctx, id, ep, external); err != nil {
 				return fmt.Errorf("failed to delete stack %d: %w", id, err)

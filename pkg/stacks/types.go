@@ -96,6 +96,7 @@ type Stack struct {
 	Name            string              `json:"Name"`
 	Type            StackType           `json:"Type"`
 	EndpointID      int                 `json:"EndpointId"`
+	EndpointName    string              `json:"EndpointName,omitempty"`
 	SwarmID         string              `json:"SwarmId,omitempty"`
 	EntryPoint      string              `json:"EntryPoint,omitempty"`
 	Env             []Pair              `json:"Env,omitempty"`
