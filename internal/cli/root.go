@@ -38,6 +38,9 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&cfg.Output, "output", "o", cfg.Output, "Output format: table, json, yaml (env: PORTAINER_OUTPUT)")
 
 	rootCmd.AddCommand(newStackCmd())
+	rootCmd.AddCommand(newLoginCmd())
+	rootCmd.AddCommand(newLogoutCmd())
+	rootCmd.AddCommand(newConfigCmd())
 }
 
 // getClient creates an initialized Portainer API client using current configuration.

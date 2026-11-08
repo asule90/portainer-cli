@@ -16,9 +16,33 @@ A Go-based command line interface and SDK client for managing Portainer instance
   - `redeploy`: Trigger a git pull and redeploy for git-backed stacks.
   - `migrate`: Migrate a stack to another Portainer environment.
   - `delete` / `rm`: Remove a stack.
+- **Authentication & Config Management**:
+  - `login`: Authenticate and save credentials permanently to `~/.config/portainer-cli/config.json`.
+  - `logout`: Clear saved credentials.
+  - `config show / set`: Inspect active configuration or update settings (URL, API key, endpoint, format).
 - **Multiple Output Formats**: Table (human-readable), JSON, and YAML (`-o json`, `-o yaml`, `-o table`).
-- **Flexible Authentication**: Reads API Key or JWT from flags (`--api-key`, `--jwt`), environment variables (`PORTAINER_API_KEY`, `X_API_KEY`, `PORTAINER_JWT`), or `.env` file.
+- **Flexible Authentication**: Automatically prioritizes CLI flags > Environment Variables > Local `.env` > Persistent `config.json`.
 - **SDK & CLI**: `pkg/client` and `pkg/stacks` can be imported as a Go library.
+
+---
+
+## Quick Start: One-time Authentication (`login`)
+
+You only need to authenticate once:
+```bash
+portainer-cli login --url https://localhost:9443 --api-key "ptr_..."
+```
+This validates your key with Portainer and writes to `~/.config/portainer-cli/config.json`. Afterwards, you can run any `portainer-cli` command from any directory without passing `--api-key` or having a `.env` file!
+
+To update or view configuration:
+```bash
+# View active config
+portainer-cli config show
+
+# Update API key or URL anytime
+portainer-cli config set api-key "new-api-key"
+portainer-cli config set url "https://portainer.example.com"
+```
 
 ---
 
